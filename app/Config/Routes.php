@@ -35,16 +35,20 @@ $routes->get('/', 'Auth::login');
 $routes->post('/logon', 'Auth::logon');
 $routes->get('/logout', 'Auth::logout');
 
-$routes->post('/karyawan','Admin::karyawan');
-$routes->get('/formkaryawan','Admin::form');
+$routes->post('/karyawan', 'Admin::karyawan');
+$routes->get('/formkaryawan', 'Admin::form');
 $routes->get('/karyawan/delete/(:num)', 'Admin::delete_karyawan/$1');
 $routes->get('/karyawan/edit/(:num)', 'Admin::edit_karyawan/$1');
 $routes->post('/karyawan/update/(:num)', 'Admin::update_karyawan/$1');
-$routes->post('/jabatan','Admin::jabatan');
+$routes->post('/jabatan', 'Admin::jabatan');
 $routes->get('/jabatan/delete/(:num)', 'Admin::delete_jabatan/$1');
-$routes->get('/dashboard','Admin::dashboard');
-$routes->get('/laporangajikaryawan','Admin::laporangaji');
+$routes->get('/dashboard', 'Admin::dashboard');
+$routes->get('/laporangajikaryawan', 'Admin::laporangaji');
 $routes->post('/laporangajikaryawan/export', 'Admin::export');
+// app/Config/Routes.php
+
+$routes->get('/slipgajikaryawan/export', 'LaporanGaji::exportToPdf');
+
 
 /*
  * --------------------------------------------------------------------

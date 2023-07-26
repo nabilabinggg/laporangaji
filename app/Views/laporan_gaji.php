@@ -29,7 +29,7 @@
             <option value="">-- Pilih Bulan --</option>
             <?php foreach ($query as $row) {
               $bulanIndex = $row->bulan;
-              $bulanName = $namaBulan[$bulanIndex - 1]; 
+              $bulanName = $namaBulan[$bulanIndex - 1];
             ?>
               <option value="<?= $bulanIndex; ?>"><?= $bulanName; ?></option>
             <?php
@@ -37,9 +37,21 @@
             ?>
           </select>
         </div>
-          <div>
-            <button type="submit" class="btn btn-primary" style="height:60%" onclick="exportToExcel()">Download Laporan</button>
-          </div>
+
+        <!-- <div class="form-group mr-3 d-flex flex-row">
+          <label for="month" class="d-flex m-auto">Jabatan</label>
+          <select class="form-control ml-2" name="jabatan_gaji" id="jabatan_gaji">
+            <option value="">-- Pilih Jabatan --</option>
+            <?php foreach ($karyawan as $j) : ?>
+              <option value="<?php echo $j['jabatan_id']; ?>">
+                <?= $j['nama_jabatan'] ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div> -->
+        <div>
+          <button type="submit" class="btn btn-primary" style="height:60%" onclick="exportToExcel()">Download Laporan</button>
+        </div>
       </div>
       <div class="row">
         <div class="col-12">
@@ -57,6 +69,7 @@
                       <th>Bonus</th>
                       <th>PPH</th>
                       <th>Total Gaji</th>
+                      <th>Slip Gaji</th>
                     </tr>
                   </thead>
                   <tbody id="table-body">
@@ -68,6 +81,7 @@
                       $pph = $data['pph'];
 
                       $total_gaji = $gaji_pokok + $bonus - $pph;
+                      $buttonContent = "Download Laporan";
                       echo ("<tr>
                       <td>" . $formattedDate . "</td>
                         <td>" . $data['nik'] . "</td>
@@ -77,6 +91,9 @@
                         <td>" . number_format($data['bonus'], 2) . "</td>
                         <td>" . number_format($data['pph'], 2) . "</td>
                         <td>" . number_format($total_gaji, 2) . "</td>
+                        <td>
+        <button type='submit' class='btn btn-primary' onclick='exportToPdf(this)' data-date='" . $formattedDate . "'>Download Laporan</button>
+    </td>
                         </tr>");
                     } ?>
                   </tbody>
@@ -95,23 +112,23 @@
       const tableBody = document.getElementById('table-body');
       const rows = tableBody.getElementsByTagName('tr');
       const selectedMonth = monthFilter.value;
-      
+
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         const cells = row.getElementsByTagName('td');
         const rowDate = cells[0].innerText.trim();
-        
+
         // Bagian berikut untuk mendapatkan bulan dari output tanggal
         const dateParts = rowDate.split(' ');
         const rowMonth = dateParts[1];
-        
+
         // Mengubah nama bulan menjadi angka sesuai indeks dalam array namaBulan
         const namaBulan = [
           'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
         ];
         const rowMonthIndex = namaBulan.indexOf(rowMonth) + 1;
-        
+
         if (!selectedMonth || rowMonthIndex.toString() === selectedMonth) {
           row.style.display = '';
         } else {
@@ -144,6 +161,50 @@
     monthFilter.addEventListener('change', filterTableByMonth);
     filterTableByMonth();
   </script>
+
+
+  <!-- Inside the <script> block in your PHP view -->
+
+  <script>
+    function exportToPdf(button) {
+      // Get the data from the button's data-date attribute
+      const formattedDate = button.getAttribute('data-date');
+
+      // Send an AJAX request to the server to trigger the PDF export
+      const url = '<?= site_url('/laporangajikaryawan/export') ?>';
+
+      // You can pass any data you need for PDF generation in the data object.
+      const data = {
+        formattedDate: formattedDate // Send the formatted date to the server
+      };
+
+      // Send the AJAX request to the server.
+      fetch(url, {
+          method: 'POST', // Use 'POST' or 'GET' depending on your requirements
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        })
+        .then(response => response.blob())
+        .then(blob => {
+          // Create a URL for the PDF blob to initiate the download.
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'Laporan_Gaji.pdf'; // Set the desired file name here.
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        })
+        .catch(error => {
+          console.error('Error exporting PDF:', error);
+        });
+    }
+  </script>
+
+
+
 
   <!-- General JS Scripts -->
   <script src="<?= base_url() ?>/template/pages/assets/modules/jquery.min.js"></script>

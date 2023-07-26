@@ -115,8 +115,10 @@ class Admin extends BaseController
             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
         ];
 
+        $karyawan = $this->adminmodels->join('jabatan', 'jabatan.id_jabatan = karyawan.jabatan_id')->findAll();
+
         $data = [
-            'karyawan' => $this->adminmodels->join('jabatan', 'jabatan.id_jabatan = karyawan.jabatan_id')->findAll(),
+            'karyawan' => $karyawan,
             'query' => $query,
             'namaBulan' => $namaBulan
         ];
@@ -179,6 +181,52 @@ class Admin extends BaseController
 
         // Set output file path and name
         $filename = 'laporan_gaji';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename=' . $filename . '.xlsx');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+
+    public function exportpdf()
+    {
+        $karyawan = $this->adminmodels->join('jabatan', 'jabatan.id_jabatan = karyawan.jabatan_id')->findAll();
+
+        // Export data yang telah difilter ke file Excel
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet(0)
+            ->setCellValue('A1', 'NIK')
+            ->setCellValue('B1', 'Nama')
+            ->setCellValue('C1', 'No Telp')
+            ->setCellValue('D1', 'Alamat')
+            ->setCellValue('E1', 'Jabatan')
+            ->setCellValue('F1', 'Gaji Pokok')
+            ->setCellValue('G1', 'Bonus')
+            ->setCellValue('H1', 'PPH')
+            ->setCellValue('I1', 'Total Gaji');
+
+        // Loop through the filtered data to fill in the Excel file
+        $row = 2;
+        foreach ($karyawan as $data) {
+            $spreadsheet->setActiveSheetIndex(0)
+                ->setCellValue('A' . $row, $data['nik'])
+                ->setCellValue('B' . $row, $data['nama'])
+                ->setCellValue('C' . $row, $data['no_telp'])
+                ->setCellValue('D' . $row, $data['alamat'])
+                ->setCellValue('E' . $row, $data['nama_jabatan'])
+                ->setCellValue('F' . $row, $gaji_pokok)
+                ->setCellValue('G' . $row, $bonus)
+                ->setCellValue('H' . $row, $pph)
+                ->setCellValue('I' . $row, $total_gaji);
+
+            $row++;
+        }
+
+        // Create Excel file
+        $writer = new Xlsx($spreadsheet);
+
+        // Set output file path and name
+        $filename = 'slip_gaji';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename=' . $filename . '.xlsx');
         header('Cache-Control: max-age=0');
